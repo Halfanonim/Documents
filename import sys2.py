@@ -1,76 +1,74 @@
-Василий наконец-то определился с форматом имени и теперь хочет применить этот опыт для всей своей коллекции фото с разных мероприятий.
+import re
 
-IMAGINE_DRAGONS 2018 08 29
-DRIFT 2023 04 30
-CONFERENCE 2022 11 24
-Нужно помочь ему их упорядочить 
+def convert_filename(event_info, filenames):
+    # Разбиваем информацию о событиях на список кортежей (event_name, year, month, day)
+    events = [line.split() for line in event_info]
+    
+    # Список для хранения преобразованных имен файлов
+    converted_filenames = []
+    
+    # Счетчик для нумерации файлов с одного события
+    event_counters = {}
+    
+    # Проходим по всем именам файлов
+    for filename in filenames:
+        # Находим соответствие с помощью регулярного выражения
+        match = re.match(r'^(IMG|DCIM)-?(\d{4})-(\d{2})-(\d{2})-(\d+).jpg$', filename)
+        if match:
+            groups = match.groups()
+            prefix = groups[0]  # Префикс IMG или DCIM
+            year = groups[1]
+            month = groups[2]
+            day = groups[3]
+            serial_number = int(groups[4])
+            
+            # Находим соответствующее событие по дате
+            event_name = None
+            for event in events:
+                if event[1] == year and event[2] == month and event[3] == day:
+                    event_name = event[0]
+                    break
+            
+            if event_name is None:
+                continue
+            
+            # Преобразуем числовой месяц в текстовый формат
+            months_dict = {
+                '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', 
+                '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug', 
+                '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'
+            }
+            month_text = months_dict[month]
+            
+            # Объединяем название события, дату и порядковый номер
+            if event_name not in event_counters:
+                event_counters[event_name] = 1
+            else:
+                event_counters[event_name] += 1
+            
+            new_filename = f"{year}_{month_text}_{day}_{event_name}_{event_counters[event_name]}.jpg"
+            
+            # Добавляем преобразованное имя файла в список
+            converted_filenames.append(new_filename)
+    
+    # Сортируем список преобразованных имен файлов по алфавиту
+    converted_filenames.sort()
+    
+    # Возвращаем отсортированный список преобразованных имен файлов
+    return converted_filenames
 
-202304300924-1.jpg
-DCIM-2023-04-30-1.jpg
-IMG_20230430_092422111.jpg
-При решении можно учитывать, что в жизни Василия не происходит больше одного события в день.
-То есть, если мы знаем что 2023 04 30 было событие DRIFT, значит все фото с этой даты имеют префикс DRIFT. Название события указывается всегда заглавными буквами, если оно содержит несколько слов - слова разделены underscore'ами ("_").
-Также, т.к. фото с каждого из событий много, нужно добавить нумерацию, нумерация начинается с 1. Например строки из (Пример 1)
-
-IMG_20230430_092422111.jpg
-IMG_20230430_114014230.jpg
-IMG_20180829_114101732.jpg
-превратятся в (Пример 2)
-
-2023_Apr_30_DRIFT_1.jpg
-2023_Apr_30_DRIFT_2.jpg
-2018_Aug_29_IMAGINEDRAGONS_1.jpg
-Условия:
-
-На вход подаётся
-Список из трёх мероприятий с датами. По одному на строку. Разделитель внутри строки - пробел.
-Формат: EVENT_NAME yyyy mm dd
-Список названий файлов, их количество N: [1..9]. Файлы также из трёх источников и формат названия у них разный - такой же, как в прошлой задаче. Упорядоченность списка файлов на входе не гарантируется
-Пример тестовых данных(количество строк с файлами может отличаться)
-VERNITE_MOI 2007 07 07
-TEST 2000 01 01
-POKEMON_GO 2023 04 30
-IMG_20070707_001311111.jpg
-IMG_20070707_001412000.jpg
-IMG_20070707_001617235.jpg
-IMG_20070707_002424603.jpg
-DCIM-2000-01-01-1.jpg
-DCIM-2000-01-01-2.jpg
-202304300924-1.jpg
-202304301001-2.jpg
-202304301012-3.jpg
-На выходе ожидается отсортированный текст, где каждая строка - название файла. Формат как в Примере 2.
-2023_Apr_30_POKEMON_GO_1.jpg
-2023_Apr_30_POKEMON_GO_2.jpg
-2023_Apr_30_POKEMON_GO_3.jpg
-2000_Jan_01_TEST_1.jpg
-2000_Jan_01_TEST_2.jpg
-2007_Jul_07_VERNITE_MOI_1.jpg
-2007_Jul_07_VERNITE_MOI_2.jpg
-2007_Jul_07_VERNITE_MOI_3.jpg
-2007_Jul_07_VERNITE_MOI_4.jpg
-Sample Input:
-
-VACATION_GREECE 2021 11 27
-CHESS_TOURNAMENT 2004 12 18
-CONFERENCE 2002 08 02
-200208020145-6.jpg
-200208020053-10.jpg
-DCIM-2021-11-27-0.jpg
-DCIM-2002-08-02-6.jpg
-DCIM-2004-12-18-3.jpg
-202111271009-2.jpg
-200412180835-8.jpg
-DCIM-2002-08-02-10.jpg
-202111270804-5.jpg
-Sample Output:
-
-2002_Aug_02_CONFERENCE_1.jpg
-2002_Aug_02_CONFERENCE_2.jpg
-2002_Aug_02_CONFERENCE_3.jpg
-2002_Aug_02_CONFERENCE_4.jpg
-2004_Dec_18_CHESS_TOURNAMENT_1.jpg
-2004_Dec_18_CHESS_TOURNAMENT_2.jpg
-2021_Nov_27_VACATION_GREECE_1.jpg
-2021_Nov_27_VACATION_GREECE_2.jpg
-2021_Nov_27_VACATION_GREECE_3.jpg
+# Чтение данных из stdin
+if __name__ == "__main__":
+    import sys
+    input_data = sys.stdin.read().strip().split('\n')
+    
+    # Разделяем данные на информацию о событиях и имена файлов
+    event_info = input_data[:3]
+    filenames = input_data[3:]
+    
+    # Конвертация и сортировка имен файлов
+    result = convert_filename(event_info, filenames)
+    
+    # Вывод результата
+    for filename in result:
+        print(filename)
