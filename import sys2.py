@@ -1,51 +1,76 @@
-import re
+Василий наконец-то определился с форматом имени и теперь хочет применить этот опыт для всей своей коллекции фото с разных мероприятий.
 
-def convert_filename(file_name):
-    # Шаблоны для различных форматов
-    patterns = [
-        r'^IMG_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})(\d+)\.jpg$',  # IMG_20230430_092422111.jpg
-        r'^DCIM-(\d{4})-(\d{2})-(\d{2})-(\d+)\.jpg$',                      # DCIM-2023-04-30-1.jpg
-        r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-(\d+)\.jpg$'        # 202304300924-1.jpg
-    ]
-    
-    # Месяцы в текстовом формате
-    months_dict = {
-        '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', 
-        '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug', 
-        '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'
-    }
-    
-    # Поиск подходящего шаблона
-    for pattern in patterns:
-        match = re.match(pattern, file_name)
-        if match:
-            groups = match.groups()
-            if pattern == patterns[0]:  # IMG format
-                year, month, day, hour, minute, second, microsec = groups
-            elif pattern == patterns[1]:  # DCIM format
-                year, month, day, _ = groups
-                hour, minute, second, microsec = '00', '00', '00', '000'
-            elif pattern == patterns[2]:  # Generic format
-                year, month, day, hour, minute, second, microsec, _ = groups
-            
-            # Преобразуем числовой месяц в текстовый формат
-            month_text = months_dict[month]
-            
-            # Формируем новое имя файла
-            new_file_name = f"{year}_{month_text}_{day}_PYTHON_CONFERENCE.jpg"
-            
-            return new_file_name
-    
-    return None
+IMAGINE_DRAGONS 2018 08 29
+DRIFT 2023 04 30
+CONFERENCE 2022 11 24
+Нужно помочь ему их упорядочить 
 
-# Чтение данных из stdin
-if __name__ == "__main__":
-    import sys
-    input_data = sys.stdin.read().strip()
-    
-    # Конвертация имени файла
-    converted_name = convert_filename(input_data)
-    
-    # Вывод результата
-    if converted_name:
-        print(converted_name)
+202304300924-1.jpg
+DCIM-2023-04-30-1.jpg
+IMG_20230430_092422111.jpg
+При решении можно учитывать, что в жизни Василия не происходит больше одного события в день.
+То есть, если мы знаем что 2023 04 30 было событие DRIFT, значит все фото с этой даты имеют префикс DRIFT. Название события указывается всегда заглавными буквами, если оно содержит несколько слов - слова разделены underscore'ами ("_").
+Также, т.к. фото с каждого из событий много, нужно добавить нумерацию, нумерация начинается с 1. Например строки из (Пример 1)
+
+IMG_20230430_092422111.jpg
+IMG_20230430_114014230.jpg
+IMG_20180829_114101732.jpg
+превратятся в (Пример 2)
+
+2023_Apr_30_DRIFT_1.jpg
+2023_Apr_30_DRIFT_2.jpg
+2018_Aug_29_IMAGINEDRAGONS_1.jpg
+Условия:
+
+На вход подаётся
+Список из трёх мероприятий с датами. По одному на строку. Разделитель внутри строки - пробел.
+Формат: EVENT_NAME yyyy mm dd
+Список названий файлов, их количество N: [1..9]. Файлы также из трёх источников и формат названия у них разный - такой же, как в прошлой задаче. Упорядоченность списка файлов на входе не гарантируется
+Пример тестовых данных(количество строк с файлами может отличаться)
+VERNITE_MOI 2007 07 07
+TEST 2000 01 01
+POKEMON_GO 2023 04 30
+IMG_20070707_001311111.jpg
+IMG_20070707_001412000.jpg
+IMG_20070707_001617235.jpg
+IMG_20070707_002424603.jpg
+DCIM-2000-01-01-1.jpg
+DCIM-2000-01-01-2.jpg
+202304300924-1.jpg
+202304301001-2.jpg
+202304301012-3.jpg
+На выходе ожидается отсортированный текст, где каждая строка - название файла. Формат как в Примере 2.
+2023_Apr_30_POKEMON_GO_1.jpg
+2023_Apr_30_POKEMON_GO_2.jpg
+2023_Apr_30_POKEMON_GO_3.jpg
+2000_Jan_01_TEST_1.jpg
+2000_Jan_01_TEST_2.jpg
+2007_Jul_07_VERNITE_MOI_1.jpg
+2007_Jul_07_VERNITE_MOI_2.jpg
+2007_Jul_07_VERNITE_MOI_3.jpg
+2007_Jul_07_VERNITE_MOI_4.jpg
+Sample Input:
+
+VACATION_GREECE 2021 11 27
+CHESS_TOURNAMENT 2004 12 18
+CONFERENCE 2002 08 02
+200208020145-6.jpg
+200208020053-10.jpg
+DCIM-2021-11-27-0.jpg
+DCIM-2002-08-02-6.jpg
+DCIM-2004-12-18-3.jpg
+202111271009-2.jpg
+200412180835-8.jpg
+DCIM-2002-08-02-10.jpg
+202111270804-5.jpg
+Sample Output:
+
+2002_Aug_02_CONFERENCE_1.jpg
+2002_Aug_02_CONFERENCE_2.jpg
+2002_Aug_02_CONFERENCE_3.jpg
+2002_Aug_02_CONFERENCE_4.jpg
+2004_Dec_18_CHESS_TOURNAMENT_1.jpg
+2004_Dec_18_CHESS_TOURNAMENT_2.jpg
+2021_Nov_27_VACATION_GREECE_1.jpg
+2021_Nov_27_VACATION_GREECE_2.jpg
+2021_Nov_27_VACATION_GREECE_3.jpg
