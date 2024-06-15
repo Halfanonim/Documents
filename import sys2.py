@@ -1,46 +1,51 @@
-На самом деле Василий не просто любит фотографировать - он профессиональный фотограф. И у него несколько камер, на каждой из которых свой формат имени файлов. Он хочет привести все файлы к одному общему стилю именования. Помогите ему решить эту проблему.
+import re
 
-(Пример 1)
+def convert_filename(file_name):
+    # Шаблоны для различных форматов
+    patterns = [
+        r'^IMG_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})(\d+)\.jpg$',  # IMG_20230430_092422111.jpg
+        r'^DCIM-(\d{4})-(\d{2})-(\d{2})-(\d+)\.jpg$',                      # DCIM-2023-04-30-1.jpg
+        r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-(\d+)\.jpg$'        # 202304300924-1.jpg
+    ]
+    
+    # Месяцы в текстовом формате
+    months_dict = {
+        '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', 
+        '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug', 
+        '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'
+    }
+    
+    # Поиск подходящего шаблона
+    for pattern in patterns:
+        match = re.match(pattern, file_name)
+        if match:
+            groups = match.groups()
+            if pattern == patterns[0]:  # IMG format
+                year, month, day, hour, minute, second, microsec = groups
+            elif pattern == patterns[1]:  # DCIM format
+                year, month, day, _ = groups
+                hour, minute, second, microsec = '00', '00', '00', '000'
+            elif pattern == patterns[2]:  # Generic format
+                year, month, day, hour, minute, second, microsec, _ = groups
+            
+            # Преобразуем числовой месяц в текстовый формат
+            month_text = months_dict[month]
+            
+            # Формируем новое имя файла
+            new_file_name = f"{year}_{month_text}_{day}_PYTHON_CONFERENCE.jpg"
+            
+            return new_file_name
+    
+    return None
 
-202304300924-1.jpg
-DCIM-2023-04-30-1.jpg
-IMG_20230430_092422111.jpg
-где:
-
-IMG - префикс производителя телефона или технический(Digital Camera IMages)
-2023 - год
-04 - месяц
-30 - день
-09 - час GMT+0
-24 - минуты
-22111 - микросекунды
-1 - порядковый номер среди фото, сделанных в этот день
-jpg - расширение файла
-2023_Apr_30_PYTHON_CONFERENCE.jpg (Пример 2).
-
-где:
-
-PYTHON_CONFERENCE - название события
-2023 - год
-04 - месяц
-30 - день
-jpg - расширение файла
-Напишите программу, которая сама определяет формат файла и конвертирует его в формат, выбранный Василием в предыдущей задаче (Пример 2).
-
-Условия:
-
-На вход подаётся строка - название файла. Формат названия может быть одним из указанных в Примере 1.
-На выходе ожидается строка - название файла. Формат как в Примере 2.
-Проверка осуществляется на большом количестве тестовых "файлов" разного формата, предполагается, что все фотографии с одного мероприятия, поэтому постфикс "PYTHON_CONFERENCE" в финальном названии для всех них будет одинаковым.
-Sample Input 1:
-
-DCIM-2005-07-08-8.jpg
-Sample Output 1:
-
-2005_Jul_08_PYTHON_CONFERENCE.jpg          
-Sample Input 2:
-
-DCIM-2009-01-24-10.jpg
-Sample Output 2:
-
-2009_Jan_24_PYTHON_CONFERENCE.jpg
+# Чтение данных из stdin
+if __name__ == "__main__":
+    import sys
+    input_data = sys.stdin.read().strip()
+    
+    # Конвертация имени файла
+    converted_name = convert_filename(input_data)
+    
+    # Вывод результата
+    if converted_name:
+        print(converted_name)
